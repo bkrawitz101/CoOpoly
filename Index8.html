@@ -102,7 +102,7 @@
             transform-style: preserve-3d;
         }
 
-        /* ----- THE CENTER AVATAR ----- */
+        /* ----- THE CENTER AVATAR (WebP Driven) ----- */
         .root-avatar {
             position: absolute;
             bottom: 45%; 
@@ -110,8 +110,8 @@
             pointer-events: none;
             transform: translateZ(2px) rotateX(-15deg);
             transform-origin: bottom center;
-            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.4));
             z-index: 50;
+            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.4));
         }
 
         /* ----- FRACTAL CARD AVATAR (Right Side) ----- */
@@ -123,8 +123,8 @@
             pointer-events: none;
             transform: translateZ(10px) rotateX(-15deg);
             transform-origin: bottom center;
-            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.4));
             z-index: 50; 
+            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.4));
         }
 
         /* Start Audio Button Overlay */
@@ -255,7 +255,6 @@
 </head>
 <body>
 
-    <!-- Welcome Overlay to bypass Chrome/Safari Audio restrictions -->
     <div id="audio-overlay">
         <div>Welcome to CoOpoly</div>
         <button id="start-btn">Enter Dimension</button>
@@ -293,11 +292,11 @@
         // BROWSER AUDIO UNLOCK
         // --------------------------------------------------------
         startBtn.addEventListener('click', () => {
-            const rootAvatar = document.querySelector('#layer-0 .hologram-avatar');
-            if (rootAvatar) {
-                rootAvatar.muted = false;
-                rootAvatar.currentTime = 0;
-                rootAvatar.play().catch(e => console.log("Video play failed:", e));
+            const rootAudio = document.querySelector('#layer-0 .hologram-audio');
+            if (rootAudio) {
+                rootAudio.muted = false;
+                rootAudio.currentTime = 0;
+                rootAudio.play().catch(e => console.log("Audio play failed:", e));
             }
 
             audioOverlay.style.transition = "opacity 0.8s ease";
@@ -320,6 +319,9 @@
             `;
         }
 
+        // --------------------------------------------------------
+        // ROOT INJECTION (Visual WebP + Hidden Audio)
+        // --------------------------------------------------------
         function createRootBoardHTML() {
             let html = `<div class="root-board">`;
             const map = {
@@ -330,7 +332,6 @@
                 corner: { c: '#ffffff', n: 'Corner' }, empty: { c: '#aaaaaa', n: 'Action' }
             };
 
-            // Top Row
             html += `<div class="corner space-node" data-name="Free Parking" data-color="${map.corner.c}" data-ang="0" style="grid-column: 1; grid-row: 1;"></div>`;
             for(let i=2; i<=10; i++) {
                 let clr = (i===3||i===6||i===9) ? map.empty : (i<=5 ? map.red : map.yellow);
@@ -339,21 +340,18 @@
             }
             html += `<div class="corner space-node" data-name="Go To Jail" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 1;"></div>`;
 
-            // Left Row 
             for(let i=2; i<=10; i++) {
                 let clr = (i===4||i===6||i===9) ? map.empty : (i<=5 ? map.orange : map.pink);
                 let bar = (i===4||i===6||i===9) ? '' : `<div class="color-bar ${i<=5 ? 'orange' : 'pink'}"></div>`;
                 html += `<div class="space left-row space-node" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="90" style="grid-column: 1; grid-row: ${i};">${bar}</div>`;
             }
 
-            // Right Row 
             for(let i=2; i<=10; i++) {
                 let clr = (i===4||i===6||i===9) ? map.empty : (i<=5 ? map.green : map.darkblue);
                 let bar = (i===4||i===6||i===9) ? '' : `<div class="color-bar ${i<=5 ? 'green' : 'darkblue'}"></div>`;
                 html += `<div class="space right-row space-node" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="-90" style="grid-column: 11; grid-row: ${i};">${bar}</div>`;
             }
 
-            // Bottom Row 
             html += `<div class="corner space-node" data-name="Jail" data-color="${map.corner.c}" data-ang="0" style="grid-column: 1; grid-row: 11;"></div>`;
             for(let i=2; i<=10; i++) {
                 let clr = (i===4||i===6||i===7||i===9) ? map.empty : (i<=5 ? map.lightblue : map.brown);
@@ -362,12 +360,15 @@
             }
             html += `<div class="corner space-node" data-name="GO" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 11;"></div>`;
 
-            // CENTER INJECTION (Safari .mov + Chrome .webm)
+            // CENTER INJECTION
             html += `
                 <div class="root-center">
 
-                    <video class="hologram-avatar root-avatar" loop playsinline muted>
-                        <source src="your-avatar.mov" type="video/quicktime; codecs=hvc1">
+                    <!-- WebP handles the 3D transparent visuals flawlessly in all browsers -->
+                    <img src="your-avatar.webp" class="hologram-visual root-avatar">
+
+                    <!-- WebM runs invisibly in the background purely to provide synced audio -->
+                    <video class="hologram-audio" loop playsinline style="display:none;">
                         <source src="your-avatar.webm" type="video/webm">
                     </video>
 
@@ -378,13 +379,18 @@
             return html;
         }
 
+        // --------------------------------------------------------
+        // CARD INJECTION (Visual WebP + Hidden Audio)
+        // --------------------------------------------------------
         function getCardContentHTML(parentName, parentColor, depth) {
             let html = `
                 <div class="monopoly-card" style="--theme-color: ${parentColor};">
 
-                    <!-- FRACTAL AVATAR (Right Side, Safari .mov + Chrome .webm) -->
-                    <video class="hologram-avatar card-avatar" loop playsinline muted>
-                        <source src="your-avatar.mov" type="video/quicktime; codecs=hvc1">
+                    <!-- FRACTAL AVATAR -->
+                    <img src="your-avatar.webp" class="hologram-visual card-avatar">
+
+                    <!-- FRACTAL AUDIO -->
+                    <video class="hologram-audio" loop playsinline style="display:none;">
                         <source src="your-avatar.webm" type="video/webm">
                     </video>
 
@@ -414,6 +420,9 @@
             return html;
         }
 
+        // --------------------------------------------------------
+        // ENGINE CONTROLS
+        // --------------------------------------------------------
         function bindSpaces(layerElement, depth) {
             const nodes = layerElement.querySelectorAll('.space-node');
 
@@ -423,9 +432,10 @@
                     if (isAnimating) return;
                     isAnimating = true;
 
+                    // Pause old layer audio
                     const currentLayerObj = layerStack[layerStack.length - 1];
-                    const currentAvatar = currentLayerObj.el.querySelector('.hologram-avatar');
-                    if (currentAvatar) currentAvatar.pause();
+                    const currentAudio = currentLayerObj.el.querySelector('.hologram-audio');
+                    if (currentAudio) currentAudio.pause();
 
                     const diff = parseFloat(this.getAttribute('data-ang') || 0);
 
@@ -457,11 +467,12 @@
                     newLayer.style.transform = `translate(${localX}px, ${localY}px) rotateZ(${-diff}deg) scale(${1/dynamicS})`;
                     layersContainer.appendChild(newLayer);
 
-                    const newAvatar = newLayer.querySelector('.hologram-avatar');
-                    if (newAvatar) {
-                        newAvatar.muted = false;
-                        newAvatar.currentTime = 0;
-                        newAvatar.play().catch(e => console.log("Audio bypass error:", e));
+                    // Start new layer audio
+                    const newAudio = newLayer.querySelector('.hologram-audio');
+                    if (newAudio) {
+                        newAudio.muted = false;
+                        newAudio.currentTime = 0;
+                        newAudio.play().catch(e => console.log("Audio bypass error:", e));
                     }
 
                     void layersContainer.offsetWidth; 
@@ -508,8 +519,8 @@
             const currentState = layerStack.pop(); 
             const parentState = layerStack[layerStack.length - 1]; 
 
-            const currentAv = currentState.el.querySelector('.hologram-avatar');
-            if (currentAv) currentAv.pause();
+            const currentAudio = currentState.el.querySelector('.hologram-audio');
+            if (currentAudio) currentAudio.pause();
 
             parentState.el.style.display = 'block';
             parentState.el.style.opacity = '0';
@@ -540,8 +551,8 @@
             parentState.el.style.transition = `opacity ${animDuration * 0.7}s ease-out ${animDuration * 0.3}s`;
             parentState.el.style.opacity = '1';
 
-            const parentAv = parentState.el.querySelector('.hologram-avatar');
-            if (parentAv) parentAv.play();
+            const parentAudio = parentState.el.querySelector('.hologram-audio');
+            if (parentAudio) parentAudio.play();
 
             setTimeout(() => {
                 currentState.el.remove();
@@ -559,8 +570,8 @@
             const currentState = layerStack.pop();
             const rootState = layerStack[0];
 
-            const currentAv = currentState.el.querySelector('.hologram-avatar');
-            if (currentAv) currentAv.pause();
+            const currentAudio = currentState.el.querySelector('.hologram-audio');
+            if (currentAudio) currentAudio.pause();
 
             for(let i = 1; i < layerStack.length; i++) {
                 layerStack[i].el.remove();
@@ -594,8 +605,8 @@
             rootState.el.style.transition = `opacity ${warpSpeed * 0.7}s ease-out ${warpSpeed * 0.3}s`;
             rootState.el.style.opacity = '1';
 
-            const rootAv = rootState.el.querySelector('.hologram-avatar');
-            if (rootAv) rootAv.play();
+            const rootAudio = rootState.el.querySelector('.hologram-audio');
+            if (rootAudio) rootAudio.play();
 
             setTimeout(() => {
                 currentState.el.remove();

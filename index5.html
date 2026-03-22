@@ -362,12 +362,11 @@
             }
             html += `<div class="corner space-node" data-name="GO" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 11;"></div>`;
 
-            // CENTER INJECTION (Safari .mov + Chrome .webm)
+            // CENTER INJECTION
             html += `
                 <div class="root-center">
 
-                    <video class="hologram-avatar root-avatar" loop playsinline muted>
-                        <source src="your-avatar.mov" type="video/quicktime; codecs=hvc1">
+                    <video class="hologram-avatar root-avatar" loop playsinline>
                         <source src="your-avatar.webm" type="video/webm">
                     </video>
 
@@ -382,9 +381,8 @@
             let html = `
                 <div class="monopoly-card" style="--theme-color: ${parentColor};">
 
-                    <!-- FRACTAL AVATAR (Right Side, Safari .mov + Chrome .webm) -->
-                    <video class="hologram-avatar card-avatar" loop playsinline muted>
-                        <source src="your-avatar.mov" type="video/quicktime; codecs=hvc1">
+                    <!-- FRACTAL AVATAR (Right Side) -->
+                    <video class="hologram-avatar card-avatar" loop playsinline>
                         <source src="your-avatar.webm" type="video/webm">
                     </video>
 

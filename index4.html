@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoOpoly - Infinite Board</title>
+    <title>X The Game - Center Board Avatar</title>
     <style>
         :root {
             --board-size: 85vmin; 
@@ -92,72 +92,28 @@
 
         .color-bar { pointer-events: none; z-index: 5; }
 
+        /* The Center of the Board */
         .root-center {
             grid-column: 2 / 11; grid-row: 2 / 11;
             background-color: #cde6d0; outline: 1px solid #111;
             display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
-            padding-bottom: 5vmin; 
+            padding-bottom: 5vmin; /* Push buttons down to make room for avatar */
             box-shadow: inset 0 0 50px rgba(0,0,0,0.1);
             position: relative;
             transform-style: preserve-3d;
         }
 
         /* ----- THE CENTER AVATAR ----- */
-        .root-avatar {
+        #center-avatar {
             position: absolute;
-            bottom: 45%; 
-            width: 35vmin; 
+            bottom: 45%; /* Anchors her feet near the middle */
+            width: 35vmin; /* Size relative to the board */
             pointer-events: none;
+            /* Pops her up in 3D space so she stands perpendicularly off the flat board */
             transform: translateZ(2px) rotateX(-15deg);
             transform-origin: bottom center;
             filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.4));
             z-index: 50;
-        }
-
-        /* ----- FRACTAL CARD AVATAR (Right Side) ----- */
-        .card-avatar {
-            position: absolute;
-            bottom: 12%; 
-            right: 2%; 
-            width: 28vmin; 
-            pointer-events: none;
-            transform: translateZ(10px) rotateX(-15deg);
-            transform-origin: bottom center;
-            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.4));
-            z-index: 50; 
-        }
-
-        /* Start Audio Button Overlay */
-        #audio-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 2000;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            color: white; font-size: 1.5rem;
-            backdrop-filter: blur(10px);
-        }
-
-        #start-btn {
-            margin-top: 20px;
-            background-color: #00d2ff;
-            color: #000;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 0 30px rgba(0, 210, 255, 0.6);
-            transition: all 0.2s;
-        }
-
-        #start-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 50px rgba(0, 210, 255, 1);
         }
 
         /* ----- FRACTAL MONOPOLY CARD ----- */
@@ -255,12 +211,6 @@
 </head>
 <body>
 
-    <!-- Welcome Overlay to bypass Chrome/Safari Audio restrictions -->
-    <div id="audio-overlay">
-        <div>Welcome to CoOpoly</div>
-        <button id="start-btn">Enter Dimension</button>
-    </div>
-
     <div id="vignette"></div>
 
     <div id="world">
@@ -279,33 +229,12 @@
         const layersContainer = document.getElementById('layers-container');
         const vignette = document.getElementById('vignette');
 
-        const audioOverlay = document.getElementById('audio-overlay');
-        const startBtn = document.getElementById('start-btn');
-
         let layerStack = []; 
         let currentDepth = 0;
         let isAnimating = false;
 
         const animDuration = 1.8; 
         const TILT_ANGLE = 15; 
-
-        // --------------------------------------------------------
-        // BROWSER AUDIO UNLOCK
-        // --------------------------------------------------------
-        startBtn.addEventListener('click', () => {
-            const rootAvatar = document.querySelector('#layer-0 .hologram-avatar');
-            if (rootAvatar) {
-                rootAvatar.muted = false;
-                rootAvatar.currentTime = 0;
-                rootAvatar.play().catch(e => console.log("Video play failed:", e));
-            }
-
-            audioOverlay.style.transition = "opacity 0.8s ease";
-            audioOverlay.style.opacity = "0";
-            setTimeout(() => {
-                audioOverlay.remove();
-            }, 800);
-        });
 
         function getControlsHTML(depth) {
             const isDisabled = depth === 0 ? "disabled" : "";
@@ -362,16 +291,15 @@
             }
             html += `<div class="corner space-node" data-name="GO" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 11;"></div>`;
 
-            // CENTER INJECTION (Safari .mov + Chrome .webm)
+            // CENTER INJECTION
             html += `
                 <div class="root-center">
 
-                    <video class="hologram-avatar root-avatar" loop playsinline muted>
-                        <source src="your-avatar.mov" type="video/quicktime; codecs=hvc1">
+                    <video id="center-avatar" autoplay loop muted playsinline>
                         <source src="your-avatar.webm" type="video/webm">
                     </video>
 
-                    <h2>CoOpoly</h2>
+                    <h2>X The Game</h2>
                     ${getControlsHTML(currentDepth)}
                 </div>
             </div>`;
@@ -381,13 +309,6 @@
         function getCardContentHTML(parentName, parentColor, depth) {
             let html = `
                 <div class="monopoly-card" style="--theme-color: ${parentColor};">
-
-                    <!-- FRACTAL AVATAR (Right Side, Safari .mov + Chrome .webm) -->
-                    <video class="hologram-avatar card-avatar" loop playsinline muted>
-                        <source src="your-avatar.mov" type="video/quicktime; codecs=hvc1">
-                        <source src="your-avatar.webm" type="video/webm">
-                    </video>
-
                     <div class="card-color-bar"></div>
                     <div class="card-title">${parentName}</div>
                     <div class="card-grid">
@@ -423,10 +344,6 @@
                     if (isAnimating) return;
                     isAnimating = true;
 
-                    const currentLayerObj = layerStack[layerStack.length - 1];
-                    const currentAvatar = currentLayerObj.el.querySelector('.hologram-avatar');
-                    if (currentAvatar) currentAvatar.pause();
-
                     const diff = parseFloat(this.getAttribute('data-ang') || 0);
 
                     const oldRig = cameraRig.style.transform;
@@ -457,13 +374,6 @@
                     newLayer.style.transform = `translate(${localX}px, ${localY}px) rotateZ(${-diff}deg) scale(${1/dynamicS})`;
                     layersContainer.appendChild(newLayer);
 
-                    const newAvatar = newLayer.querySelector('.hologram-avatar');
-                    if (newAvatar) {
-                        newAvatar.muted = false;
-                        newAvatar.currentTime = 0;
-                        newAvatar.play().catch(e => console.log("Audio bypass error:", e));
-                    }
-
                     void layersContainer.offsetWidth; 
 
                     vignette.style.opacity = '1';
@@ -474,6 +384,7 @@
                     cameraRig.style.transition = `transform ${animDuration}s cubic-bezier(0.65, 0, 0.35, 1)`;
                     cameraRig.style.transform = `scale(${dynamicS}) rotateX(${TILT_ANGLE}deg)`;
 
+                    const currentLayerObj = layerStack[layerStack.length - 1];
                     currentLayerObj.el.style.transition = `opacity ${animDuration * 0.8}s ease-in`;
                     currentLayerObj.el.style.opacity = '0';
 
@@ -508,9 +419,6 @@
             const currentState = layerStack.pop(); 
             const parentState = layerStack[layerStack.length - 1]; 
 
-            const currentAv = currentState.el.querySelector('.hologram-avatar');
-            if (currentAv) currentAv.pause();
-
             parentState.el.style.display = 'block';
             parentState.el.style.opacity = '0';
 
@@ -540,9 +448,6 @@
             parentState.el.style.transition = `opacity ${animDuration * 0.7}s ease-out ${animDuration * 0.3}s`;
             parentState.el.style.opacity = '1';
 
-            const parentAv = parentState.el.querySelector('.hologram-avatar');
-            if (parentAv) parentAv.play();
-
             setTimeout(() => {
                 currentState.el.remove();
                 currentDepth--;
@@ -558,9 +463,6 @@
 
             const currentState = layerStack.pop();
             const rootState = layerStack[0];
-
-            const currentAv = currentState.el.querySelector('.hologram-avatar');
-            if (currentAv) currentAv.pause();
 
             for(let i = 1; i < layerStack.length; i++) {
                 layerStack[i].el.remove();
@@ -593,9 +495,6 @@
 
             rootState.el.style.transition = `opacity ${warpSpeed * 0.7}s ease-out ${warpSpeed * 0.3}s`;
             rootState.el.style.opacity = '1';
-
-            const rootAv = rootState.el.querySelector('.hologram-avatar');
-            if (rootAv) rootAv.play();
 
             setTimeout(() => {
                 currentState.el.remove();
