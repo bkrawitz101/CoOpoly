@@ -102,16 +102,16 @@
             transform-style: preserve-3d;
         }
 
-        /* ----- SAFARI BUG FIX: CONTAINERS INSTEAD OF DIRECT VIDEO TRANSFORMS ----- */
+        /* ----- REAL-TIME CANVAS WRAPPERS ----- */
         .root-avatar-wrapper {
             position: absolute;
             bottom: 45%; 
             width: 35vmin; 
+            height: 45vmin; 
             pointer-events: none;
             transform: translateZ(2px) rotateX(-15deg);
             transform-origin: bottom center;
             z-index: 50;
-            /* REMOVED CSS FILTER DROP-SHADOW: THIS BREAKS APPLE VIDEO TRANSPARENCY */
         }
 
         .card-avatar-wrapper {
@@ -119,19 +119,35 @@
             bottom: 12%; 
             right: 2%; 
             width: 28vmin; 
+            height: 40vmin; 
             pointer-events: none;
             transform: translateZ(10px) rotateX(-15deg);
             transform-origin: bottom center;
             z-index: 50; 
-            /* REMOVED CSS FILTER DROP-SHADOW: THIS BREAKS APPLE VIDEO TRANSPARENCY */
         }
 
-        .hologram-avatar {
+        /* The canvas cleanly projecting the video without CSS 3D bugs */
+        .hologram-canvas {
             width: 100%;
-            height: auto;
-            background: transparent !important;
-            border: none;
-            outline: none;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.4));
+        }
+
+        /* 
+           CRITICAL FIX: 
+           Never use display: none! It stops browsers from processing the video.
+           Push it offscreen so it plays, but hides perfectly.
+        */
+        .hologram-video {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+            top: -9999px;
+            left: -9999px;
+            display: block;
         }
 
         /* Start Audio Button Overlay */
@@ -295,12 +311,40 @@
         const animDuration = 1.8; 
         const TILT_ANGLE = 15; 
 
+        // ----- STREAMLINED CANVAS RENDERING (CORS-SAFE) -----
+        function setupCanvasProcessing(videoElement, canvasElement) {
+            const ctx = canvasElement.getContext('2d');
+
+            const drawFrame = () => {
+                if (videoElement.paused || videoElement.ended) return;
+
+                if (canvasElement.width !== videoElement.videoWidth) {
+                    canvasElement.width = videoElement.videoWidth || 800;
+                    canvasElement.height = videoElement.videoHeight || 1000;
+                }
+
+                if (videoElement.videoWidth > 0) {
+                    // We simply clear the canvas and draw the raw video frame.
+                    // This bypasses the local file "CORS Taint" error entirely!
+                    ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                    ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+                }
+
+                requestAnimationFrame(drawFrame);
+            };
+
+            videoElement.addEventListener('play', () => {
+                requestAnimationFrame(drawFrame);
+            });
+        }
+
+
         startBtn.addEventListener('click', () => {
-            const rootAvatar = document.querySelector('#layer-0 .hologram-avatar');
-            if (rootAvatar) {
-                rootAvatar.muted = false;
-                rootAvatar.currentTime = 0;
-                rootAvatar.play().catch(e => console.log("Video play failed:", e));
+            const rootVideo = document.querySelector('#layer-0 .hologram-video');
+            if (rootVideo) {
+                rootVideo.muted = false;
+                rootVideo.currentTime = 0;
+                rootVideo.play().catch(e => console.log("Video play failed:", e));
             }
 
             audioOverlay.style.transition = "opacity 0.8s ease";
@@ -333,7 +377,6 @@
                 corner: { c: '#ffffff', n: 'Corner' }, empty: { c: '#aaaaaa', n: 'Action' }
             };
 
-            // Top Row
             html += `<div class="corner space-node" data-name="Free Parking" data-color="${map.corner.c}" data-ang="0" style="grid-column: 1; grid-row: 1;"></div>`;
             for(let i=2; i<=10; i++) {
                 let clr = (i===3||i===6||i===9) ? map.empty : (i<=5 ? map.red : map.yellow);
@@ -342,21 +385,18 @@
             }
             html += `<div class="corner space-node" data-name="Go To Jail" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 1;"></div>`;
 
-            // Left Row 
             for(let i=2; i<=10; i++) {
                 let clr = (i===4||i===6||i===9) ? map.empty : (i<=5 ? map.orange : map.pink);
                 let bar = (i===4||i===6||i===9) ? '' : `<div class="color-bar ${i<=5 ? 'orange' : 'pink'}"></div>`;
                 html += `<div class="space left-row space-node" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="90" style="grid-column: 1; grid-row: ${i};">${bar}</div>`;
             }
 
-            // Right Row 
             for(let i=2; i<=10; i++) {
                 let clr = (i===4||i===6||i===9) ? map.empty : (i<=5 ? map.green : map.darkblue);
                 let bar = (i===4||i===6||i===9) ? '' : `<div class="color-bar ${i<=5 ? 'green' : 'darkblue'}"></div>`;
                 html += `<div class="space right-row space-node" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="-90" style="grid-column: 11; grid-row: ${i};">${bar}</div>`;
             }
 
-            // Bottom Row 
             html += `<div class="corner space-node" data-name="Jail" data-color="${map.corner.c}" data-ang="0" style="grid-column: 1; grid-row: 11;"></div>`;
             for(let i=2; i<=10; i++) {
                 let clr = (i===4||i===6||i===7||i===9) ? map.empty : (i<=5 ? map.lightblue : map.brown);
@@ -365,12 +405,12 @@
             }
             html += `<div class="corner space-node" data-name="GO" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 11;"></div>`;
 
-            // CENTER INJECTION (Fix applied: Wrapper + no drop shadow)
             html += `
                 <div class="root-center">
 
                     <div class="root-avatar-wrapper">
-                        <video class="hologram-avatar" loop playsinline muted>
+                        <canvas class="hologram-canvas"></canvas>
+                        <video class="hologram-video" loop playsinline muted>
                             <source src="your-avatar.mov" type="video/quicktime; codecs=hvc1">
                             <source src="your-avatar.webm" type="video/webm">
                         </video>
@@ -387,9 +427,9 @@
             let html = `
                 <div class="monopoly-card" style="--theme-color: ${parentColor};">
 
-                    <!-- FRACTAL AVATAR -->
                     <div class="card-avatar-wrapper">
-                        <video class="hologram-avatar" loop playsinline muted>
+                        <canvas class="hologram-canvas"></canvas>
+                        <video class="hologram-video" loop playsinline muted>
                             <source src="your-avatar.mov" type="video/quicktime; codecs=hvc1">
                             <source src="your-avatar.webm" type="video/webm">
                         </video>
@@ -424,6 +464,13 @@
         function bindSpaces(layerElement, depth) {
             const nodes = layerElement.querySelectorAll('.space-node');
 
+            // Connect the hidden video to the visible canvas for this layer
+            const videoElem = layerElement.querySelector('.hologram-video');
+            const canvasElem = layerElement.querySelector('.hologram-canvas');
+            if (videoElem && canvasElem) {
+                setupCanvasProcessing(videoElem, canvasElem);
+            }
+
             nodes.forEach(node => {
                 node.addEventListener('click', function(e) {
                     e.stopPropagation(); 
@@ -431,8 +478,8 @@
                     isAnimating = true;
 
                     const currentLayerObj = layerStack[layerStack.length - 1];
-                    const currentAvatar = currentLayerObj.el.querySelector('.hologram-avatar');
-                    if (currentAvatar) currentAvatar.pause();
+                    const currentVideo = currentLayerObj.el.querySelector('.hologram-video');
+                    if (currentVideo) currentVideo.pause();
 
                     const diff = parseFloat(this.getAttribute('data-ang') || 0);
 
@@ -464,11 +511,14 @@
                     newLayer.style.transform = `translate(${localX}px, ${localY}px) rotateZ(${-diff}deg) scale(${1/dynamicS})`;
                     layersContainer.appendChild(newLayer);
 
-                    const newAvatar = newLayer.querySelector('.hologram-avatar');
-                    if (newAvatar) {
-                        newAvatar.muted = false;
-                        newAvatar.currentTime = 0;
-                        newAvatar.play().catch(e => console.log("Audio bypass error:", e));
+                    const newVideo = newLayer.querySelector('.hologram-video');
+                    const newCanvas = newLayer.querySelector('.hologram-canvas');
+
+                    if (newVideo && newCanvas) {
+                        setupCanvasProcessing(newVideo, newCanvas);
+                        newVideo.muted = false;
+                        newVideo.currentTime = 0;
+                        newVideo.play().catch(e => console.log("Audio bypass error:", e));
                     }
 
                     void layersContainer.offsetWidth; 
@@ -515,8 +565,8 @@
             const currentState = layerStack.pop(); 
             const parentState = layerStack[layerStack.length - 1]; 
 
-            const currentAv = currentState.el.querySelector('.hologram-avatar');
-            if (currentAv) currentAv.pause();
+            const currentVideo = currentState.el.querySelector('.hologram-video');
+            if (currentVideo) currentVideo.pause();
 
             parentState.el.style.display = 'block';
             parentState.el.style.opacity = '0';
@@ -547,8 +597,8 @@
             parentState.el.style.transition = `opacity ${animDuration * 0.7}s ease-out ${animDuration * 0.3}s`;
             parentState.el.style.opacity = '1';
 
-            const parentAv = parentState.el.querySelector('.hologram-avatar');
-            if (parentAv) parentAv.play();
+            const parentVideo = parentState.el.querySelector('.hologram-video');
+            if (parentVideo) parentVideo.play();
 
             setTimeout(() => {
                 currentState.el.remove();
@@ -566,8 +616,8 @@
             const currentState = layerStack.pop();
             const rootState = layerStack[0];
 
-            const currentAv = currentState.el.querySelector('.hologram-avatar');
-            if (currentAv) currentAv.pause();
+            const currentVideo = currentState.el.querySelector('.hologram-video');
+            if (currentVideo) currentVideo.pause();
 
             for(let i = 1; i < layerStack.length; i++) {
                 layerStack[i].el.remove();
@@ -601,8 +651,8 @@
             rootState.el.style.transition = `opacity ${warpSpeed * 0.7}s ease-out ${warpSpeed * 0.3}s`;
             rootState.el.style.opacity = '1';
 
-            const rootAv = rootState.el.querySelector('.hologram-avatar');
-            if (rootAv) rootAv.play();
+            const rootVideo = rootState.el.querySelector('.hologram-video');
+            if (rootVideo) rootVideo.play();
 
             setTimeout(() => {
                 currentState.el.remove();
@@ -615,6 +665,10 @@
         const initRootLayer = document.getElementById('layer-0');
         initRootLayer.innerHTML = createRootBoardHTML();
         layerStack.push({ el: initRootLayer, cx: 0, cy: 0, diff: 0, scale: 1 });
+
+        const initVideo = initRootLayer.querySelector('.hologram-video');
+        const initCanvas = initRootLayer.querySelector('.hologram-canvas');
+        setupCanvasProcessing(initVideo, initCanvas);
         bindSpaces(initRootLayer, 0);
 
     </script>
