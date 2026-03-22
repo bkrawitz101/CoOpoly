@@ -102,19 +102,20 @@
             transform-style: preserve-3d;
         }
 
-        /* ----- SAFARI BUG FIX: CONTAINERS INSTEAD OF DIRECT VIDEO TRANSFORMS ----- */
-        .root-avatar-wrapper {
+        /* ----- THE CENTER AVATAR ----- */
+        .root-avatar {
             position: absolute;
             bottom: 45%; 
             width: 35vmin; 
             pointer-events: none;
             transform: translateZ(2px) rotateX(-15deg);
             transform-origin: bottom center;
+            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.4));
             z-index: 50;
-            /* REMOVED CSS FILTER DROP-SHADOW: THIS BREAKS APPLE VIDEO TRANSPARENCY */
         }
 
-        .card-avatar-wrapper {
+        /* ----- FRACTAL CARD AVATAR (Right Side) ----- */
+        .card-avatar {
             position: absolute;
             bottom: 12%; 
             right: 2%; 
@@ -122,16 +123,8 @@
             pointer-events: none;
             transform: translateZ(10px) rotateX(-15deg);
             transform-origin: bottom center;
+            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.4));
             z-index: 50; 
-            /* REMOVED CSS FILTER DROP-SHADOW: THIS BREAKS APPLE VIDEO TRANSPARENCY */
-        }
-
-        .hologram-avatar {
-            width: 100%;
-            height: auto;
-            background: transparent !important;
-            border: none;
-            outline: none;
         }
 
         /* Start Audio Button Overlay */
@@ -262,6 +255,7 @@
 </head>
 <body>
 
+    <!-- Welcome Overlay to bypass Chrome/Safari Audio restrictions -->
     <div id="audio-overlay">
         <div>Welcome to CoOpoly</div>
         <button id="start-btn">Enter Dimension</button>
@@ -295,6 +289,9 @@
         const animDuration = 1.8; 
         const TILT_ANGLE = 15; 
 
+        // --------------------------------------------------------
+        // BROWSER AUDIO UNLOCK
+        // --------------------------------------------------------
         startBtn.addEventListener('click', () => {
             const rootAvatar = document.querySelector('#layer-0 .hologram-avatar');
             if (rootAvatar) {
@@ -365,16 +362,14 @@
             }
             html += `<div class="corner space-node" data-name="GO" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 11;"></div>`;
 
-            // CENTER INJECTION (Fix applied: Wrapper + no drop shadow)
+            // CENTER INJECTION (Safari .mov + Chrome .webm)
             html += `
                 <div class="root-center">
 
-                    <div class="root-avatar-wrapper">
-                        <video class="hologram-avatar" loop playsinline muted>
-                            <source src="your-avatar.mov" type="video/quicktime; codecs=hvc1">
-                            <source src="your-avatar.webm" type="video/webm">
-                        </video>
-                    </div>
+                    <video class="hologram-avatar root-avatar" loop playsinline muted>
+                        <source src="your-avatar.mov" type="video/quicktime; codecs=hvc1">
+                        <source src="your-avatar.webm" type="video/webm">
+                    </video>
 
                     <h2>CoOpoly</h2>
                     ${getControlsHTML(currentDepth)}
@@ -387,13 +382,11 @@
             let html = `
                 <div class="monopoly-card" style="--theme-color: ${parentColor};">
 
-                    <!-- FRACTAL AVATAR -->
-                    <div class="card-avatar-wrapper">
-                        <video class="hologram-avatar" loop playsinline muted>
-                            <source src="your-avatar.mov" type="video/quicktime; codecs=hvc1">
-                            <source src="your-avatar.webm" type="video/webm">
-                        </video>
-                    </div>
+                    <!-- FRACTAL AVATAR (Right Side, Safari .mov + Chrome .webm) -->
+                    <video class="hologram-avatar card-avatar" loop playsinline muted>
+                        <source src="your-avatar.mov" type="video/quicktime; codecs=hvc1">
+                        <source src="your-avatar.webm" type="video/webm">
+                    </video>
 
                     <div class="card-color-bar"></div>
                     <div class="card-title">${parentName}</div>
