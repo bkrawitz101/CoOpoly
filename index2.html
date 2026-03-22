@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X The Game - Center Board Avatar</title>
+    <title>X The Game - Perfect Infinity</title>
     <style>
         :root {
+            /* Safely fills the screen without clipping */
             --board-size: 85vmin; 
         }
 
@@ -92,31 +93,14 @@
 
         .color-bar { pointer-events: none; z-index: 5; }
 
-        /* The Center of the Board */
         .root-center {
             grid-column: 2 / 11; grid-row: 2 / 11;
             background-color: #cde6d0; outline: 1px solid #111;
-            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
-            padding-bottom: 5vmin; /* Push buttons down to make room for avatar */
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
             box-shadow: inset 0 0 50px rgba(0,0,0,0.1);
-            position: relative;
-            transform-style: preserve-3d;
         }
 
-        /* ----- THE CENTER AVATAR ----- */
-        #center-avatar {
-            position: absolute;
-            bottom: 45%; /* Anchors her feet near the middle */
-            width: 35vmin; /* Size relative to the board */
-            pointer-events: none;
-            /* Pops her up in 3D space so she stands perpendicularly off the flat board */
-            transform: translateZ(2px) rotateX(-15deg);
-            transform-origin: bottom center;
-            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.4));
-            z-index: 50;
-        }
-
-        /* ----- FRACTAL MONOPOLY CARD ----- */
+        /* ----- FRACTAL MONOPOLY CARD (Zoomed State) ----- */
         .monopoly-card {
             position: absolute; width: 100%; height: 100%; left: 0; top: 0;
             background: #fafaf0; border: 4px solid #111; border-radius: 8px;
@@ -145,6 +129,7 @@
             transform-style: preserve-3d; background: #ddd; 
         }
 
+        /* The 8 Inner Sections */
         .sub-cell {
             background: #fff; border: 2px solid #111; border-radius: 4px;
             display: flex; flex-direction: column; cursor: pointer;
@@ -176,7 +161,7 @@
         }
 
         /* ----- SHARED CONTROLS ----- */
-        .controls { display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 60;}
+        .controls { display: flex; flex-direction: column; align-items: center; gap: 12px; }
         .button-row { display: flex; gap: 10px; }
 
         button {
@@ -196,7 +181,9 @@
         }
 
         .root-center h2 { margin: 0 0 5px 0; font-size: 3.5rem; color: #111; text-transform: uppercase; letter-spacing: 2px;}
+        .root-center p { color: #444; font-weight: bold; margin-bottom: 25px; font-size: 1.2rem;}
 
+        /* Root Property Colors */
         .top-row { flex-direction: column-reverse; } .top-row .color-bar { border-top: 2px solid #111; height: 25%; width: 100%; position: absolute; top: 0; }
         .bottom-row { flex-direction: column; } .bottom-row .color-bar { border-bottom: 2px solid #111; height: 25%; width: 100%; position: absolute; bottom: 0; }
         .left-row { flex-direction: row-reverse; } .left-row .color-bar { border-left: 2px solid #111; width: 25%; height: 100%; position: absolute; left: 0; }
@@ -234,7 +221,7 @@
         let isAnimating = false;
 
         const animDuration = 1.8; 
-        const TILT_ANGLE = 15; 
+        const TILT_ANGLE = 18; 
 
         function getControlsHTML(depth) {
             const isDisabled = depth === 0 ? "disabled" : "";
@@ -249,6 +236,9 @@
             `;
         }
 
+        // --------------------------------------------------------
+        // 1. ROOT BOARD GENERATOR
+        // --------------------------------------------------------
         function createRootBoardHTML() {
             let html = `<div class="root-board">`;
             const map = {
@@ -291,21 +281,13 @@
             }
             html += `<div class="corner space-node" data-name="GO" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 11;"></div>`;
 
-            // CENTER INJECTION
-            html += `
-                <div class="root-center">
-
-                    <video id="center-avatar" autoplay loop muted playsinline>
-                        <source src="your-avatar.webm" type="video/webm">
-                    </video>
-
-                    <h2>X The Game</h2>
-                    ${getControlsHTML(currentDepth)}
-                </div>
-            </div>`;
+            html += `<div class="root-center"><h2>X The Game</h2><p>Click any space to dive in.</p>${getControlsHTML(currentDepth)}</div></div>`;
             return html;
         }
 
+        // --------------------------------------------------------
+        // 2. CARD GENERATOR (The 8 Sections)
+        // --------------------------------------------------------
         function getCardContentHTML(parentName, parentColor, depth) {
             let html = `
                 <div class="monopoly-card" style="--theme-color: ${parentColor};">
@@ -320,6 +302,7 @@
                         html += `<div class="card-center-ui">${getControlsHTML(depth)}</div>`;
                     } else {
                         const subName = `Sector ${sectionCount}`;
+                        // Sub-cells are ALREADY UPRIGHT inside their parent card! Angle strictly 0!
                         html += `
                             <div class="sub-cell space-node" data-name="${parentName} S${sectionCount}" data-color="${parentColor}" data-ang="0">
                                 <div class="sub-color-bar"></div>
@@ -335,6 +318,10 @@
             return html;
         }
 
+
+        // --------------------------------------------------------
+        // 3. CORE LOGIC: FLAWLESS HANG-OFF STATE MACHINE
+        // --------------------------------------------------------
         function bindSpaces(layerElement, depth) {
             const nodes = layerElement.querySelectorAll('.space-node');
 
@@ -344,24 +331,33 @@
                     if (isAnimating) return;
                     isAnimating = true;
 
+                    // 1. Get rotation requirement
+                    // Because we always reset the board rotation to 0 after every zoom,
+                    // the active layer is ALWAYS physically at 0 deg relative to screen.
+                    // Sub-cells are hardcoded to data-ang="0", so they will NEVER spin!
                     const diff = parseFloat(this.getAttribute('data-ang') || 0);
 
+                    // 2. Math Geometry: Remove rig transforms to get pure physical bounds
                     const oldRig = cameraRig.style.transform;
                     cameraRig.style.transform = 'none';
 
                     const layerRect = layerElement.getBoundingClientRect();
                     const cellRect = this.getBoundingClientRect();
 
+                    // Center of cell relative to center of the 85vmin layer
                     const cx = (cellRect.left - layerRect.left) + cellRect.width / 2;
                     const cy = (cellRect.top - layerRect.top) + cellRect.height / 2;
                     const localX = cx - layerRect.width / 2;
                     const localY = cy - layerRect.height / 2;
 
+                    // 3. True Scale Factor: Fill the screen exactly
                     const maxSize = Math.max(cellRect.width, cellRect.height);
                     const dynamicS = layerRect.width / maxSize;
 
+                    // Restore Rig
                     cameraRig.style.transform = oldRig;
 
+                    // 4. Spawn the Next Depth Layer
                     const cellName = this.getAttribute('data-name') || "Node";
                     const cellColor = this.getAttribute('data-color') || "#ccc";
                     const newDepth = depth + 1;
@@ -371,11 +367,13 @@
                     newLayer.id = `layer-${newDepth}`;
                     newLayer.innerHTML = getCardContentHTML(cellName, cellColor, newDepth);
 
+                    // Place new layer perfectly over the clicked cell
                     newLayer.style.transform = `translate(${localX}px, ${localY}px) rotateZ(${-diff}deg) scale(${1/dynamicS})`;
                     layersContainer.appendChild(newLayer);
 
-                    void layersContainer.offsetWidth; 
+                    void layersContainer.offsetWidth; // Reflow
 
+                    // 5. Execute Camera Vector Zoom
                     vignette.style.opacity = '1';
 
                     boardMover.style.transition = `transform ${animDuration}s cubic-bezier(0.65, 0, 0.35, 1)`;
@@ -388,9 +386,11 @@
                     currentLayerObj.el.style.transition = `opacity ${animDuration * 0.8}s ease-in`;
                     currentLayerObj.el.style.opacity = '0';
 
+                    // 6. Flawless State Reset (The Secret to Infinite Zoom)
                     setTimeout(() => {
                         currentLayerObj.el.style.display = 'none';
 
+                        // We reset the world geometry secretly so the new layer acts as the absolute center
                         boardMover.style.transition = 'none';
                         boardMover.style.transform = `translate(0px, 0px) rotateZ(0deg)`;
 
@@ -400,7 +400,13 @@
                         newLayer.style.transition = 'none';
                         newLayer.style.transform = `translate(0px, 0px) rotateZ(0deg) scale(1)`;
 
-                        layerStack.push({ el: newLayer, cx: localX, cy: localY, diff: diff, scale: dynamicS });
+                        layerStack.push({ 
+                            el: newLayer, 
+                            cx: localX, 
+                            cy: localY, 
+                            diff: diff,
+                            scale: dynamicS
+                        });
                         currentDepth = newDepth;
                         bindSpaces(newLayer, newDepth); 
 
@@ -411,6 +417,9 @@
             });
         }
 
+        // --------------------------------------------------------
+        // 4. ASCEND (ZOOM OUT)
+        // --------------------------------------------------------
         window.ascend = function(e) {
             e.stopPropagation();
             if (isAnimating || currentDepth <= 0) return;
@@ -419,9 +428,11 @@
             const currentState = layerStack.pop(); 
             const parentState = layerStack[layerStack.length - 1]; 
 
+            // 1. Setup Reverse Handoff
             parentState.el.style.display = 'block';
             parentState.el.style.opacity = '0';
 
+            // Instantly put the camera into the exact position we left it
             boardMover.style.transition = 'none';
             boardMover.style.transform = `rotateZ(${currentState.diff}deg) translate(${-currentState.cx}px, ${-currentState.cy}px)`;
 
@@ -431,8 +442,9 @@
             currentState.el.style.transition = 'none';
             currentState.el.style.transform = `translate(${currentState.cx}px, ${currentState.cy}px) rotateZ(${-currentState.diff}deg) scale(${1/currentState.scale})`;
 
-            void layersContainer.offsetWidth; 
+            void layersContainer.offsetWidth; // Reflow
 
+            // 2. Animate out to 0,0,1
             vignette.style.opacity = '1';
 
             boardMover.style.transition = `transform ${animDuration}s cubic-bezier(0.65, 0, 0.35, 1)`;
@@ -456,6 +468,9 @@
             }, animDuration * 1000);
         }
 
+        // --------------------------------------------------------
+        // 5. ROOT (WARP HOME)
+        // --------------------------------------------------------
         window.returnHome = function(e) {
             e.stopPropagation();
             if (isAnimating || currentDepth <= 0) return;
@@ -474,6 +489,7 @@
             rootState.el.style.display = 'block';
             rootState.el.style.opacity = '0';
 
+            // Warp Setup: Pull back instantly
             boardMover.style.transition = 'none';
             boardMover.style.transform = `translate(0px, 0px) rotateZ(0deg)`;
 
@@ -504,6 +520,7 @@
             }, warpSpeed * 1000);
         }
 
+        // INITIALIZE
         const initRootLayer = document.getElementById('layer-0');
         initRootLayer.innerHTML = createRootBoardHTML();
         layerStack.push({ el: initRootLayer, cx: 0, cy: 0, diff: 0, scale: 1 });

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X The Game - Center Board Avatar</title>
+    <title>X The Game - HUD Companion</title>
     <style>
         :root {
             --board-size: 85vmin; 
@@ -25,6 +25,55 @@
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.95) 100%);
             z-index: 100; pointer-events: none; opacity: 0; transition: opacity 1.8s ease-in-out;
+        }
+
+        /* ----- HUD AVATAR ----- */
+        #hud-container {
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        #avatar-guide {
+            width: 300px; /* Scaled slightly for better visibility */
+            height: auto;
+            filter: drop-shadow(0px 0px 20px rgba(0, 210, 255, 0.4));
+            transition: transform 0.5s ease;
+            /* Ensures background is truly transparent in browser rendering */
+            background-color: transparent; 
+        }
+
+        .speech-bubble {
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid #00d2ff;
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            max-width: 200px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            opacity: 0.9;
+            pointer-events: auto;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: #00d2ff transparent transparent transparent;
+            display: block;
+            width: 0;
         }
 
         /* 3D Camera System */
@@ -92,28 +141,11 @@
 
         .color-bar { pointer-events: none; z-index: 5; }
 
-        /* The Center of the Board */
         .root-center {
             grid-column: 2 / 11; grid-row: 2 / 11;
             background-color: #cde6d0; outline: 1px solid #111;
-            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
-            padding-bottom: 5vmin; /* Push buttons down to make room for avatar */
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
             box-shadow: inset 0 0 50px rgba(0,0,0,0.1);
-            position: relative;
-            transform-style: preserve-3d;
-        }
-
-        /* ----- THE CENTER AVATAR ----- */
-        #center-avatar {
-            position: absolute;
-            bottom: 45%; /* Anchors her feet near the middle */
-            width: 35vmin; /* Size relative to the board */
-            pointer-events: none;
-            /* Pops her up in 3D space so she stands perpendicularly off the flat board */
-            transform: translateZ(2px) rotateX(-15deg);
-            transform-origin: bottom center;
-            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.4));
-            z-index: 50;
         }
 
         /* ----- FRACTAL MONOPOLY CARD ----- */
@@ -176,7 +208,7 @@
         }
 
         /* ----- SHARED CONTROLS ----- */
-        .controls { display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 60;}
+        .controls { display: flex; flex-direction: column; align-items: center; gap: 12px; }
         .button-row { display: flex; gap: 10px; }
 
         button {
@@ -196,6 +228,7 @@
         }
 
         .root-center h2 { margin: 0 0 5px 0; font-size: 3.5rem; color: #111; text-transform: uppercase; letter-spacing: 2px;}
+        .root-center p { color: #444; font-weight: bold; margin-bottom: 25px; font-size: 1.2rem;}
 
         .top-row { flex-direction: column-reverse; } .top-row .color-bar { border-top: 2px solid #111; height: 25%; width: 100%; position: absolute; top: 0; }
         .bottom-row { flex-direction: column; } .bottom-row .color-bar { border-bottom: 2px solid #111; height: 25%; width: 100%; position: absolute; bottom: 0; }
@@ -213,6 +246,18 @@
 
     <div id="vignette"></div>
 
+    <!-- HUD COMPANION -->
+    <div id="hud-container">
+        <div id="hud-dialogue" class="speech-bubble">
+            Welcome to the board! Click any property to dive into its first fractal dimension.
+        </div>
+
+        <!-- Local path injected here -->
+        <video id="avatar-guide" autoplay loop muted playsinline>
+            <source src="your-avatar.webm" type="video/webm">
+        </video>
+    </div>
+
     <div id="world">
         <div id="camera-rig">
             <div id="board-mover">
@@ -228,13 +273,28 @@
         const boardMover = document.getElementById('board-mover');
         const layersContainer = document.getElementById('layers-container');
         const vignette = document.getElementById('vignette');
+        const hudDialogue = document.getElementById('hud-dialogue');
+        const avatarGuide = document.getElementById('avatar-guide');
 
         let layerStack = []; 
         let currentDepth = 0;
         let isAnimating = false;
 
         const animDuration = 1.8; 
-        const TILT_ANGLE = 15; 
+        const TILT_ANGLE = 18; 
+
+        function updateAvatarDialogue(depth, cellName) {
+            avatarGuide.style.transform = "translateY(-10px)";
+            setTimeout(() => { avatarGuide.style.transform = "translateY(0px)"; }, 300);
+
+            if (depth === 0) {
+                hudDialogue.innerHTML = "We are back at the Root. Choose another sector to explore.";
+            } else if (depth === 1) {
+                hudDialogue.innerHTML = `You've entered <b>${cellName}</b>. Notice how the board geometry shifted?`;
+            } else if (depth > 1) {
+                hudDialogue.innerHTML = `Dimension ${depth}. The fractal goes infinitely deep. Shall we keep descending into <b>${cellName}</b>?`;
+            }
+        }
 
         function getControlsHTML(depth) {
             const isDisabled = depth === 0 ? "disabled" : "";
@@ -291,18 +351,7 @@
             }
             html += `<div class="corner space-node" data-name="GO" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 11;"></div>`;
 
-            // CENTER INJECTION
-            html += `
-                <div class="root-center">
-
-                    <video id="center-avatar" autoplay loop muted playsinline>
-                        <source src="your-avatar.webm" type="video/webm">
-                    </video>
-
-                    <h2>X The Game</h2>
-                    ${getControlsHTML(currentDepth)}
-                </div>
-            </div>`;
+            html += `<div class="root-center"><h2>X The Game</h2><p>Click any space to dive in.</p>${getControlsHTML(currentDepth)}</div></div>`;
             return html;
         }
 
@@ -365,6 +414,8 @@
                     const cellName = this.getAttribute('data-name') || "Node";
                     const cellColor = this.getAttribute('data-color') || "#ccc";
                     const newDepth = depth + 1;
+
+                    updateAvatarDialogue(newDepth, cellName);
 
                     const newLayer = document.createElement('div');
                     newLayer.className = 'layer';
@@ -448,6 +499,8 @@
             parentState.el.style.transition = `opacity ${animDuration * 0.7}s ease-out ${animDuration * 0.3}s`;
             parentState.el.style.opacity = '1';
 
+            updateAvatarDialogue(currentDepth - 1, "the previous sector");
+
             setTimeout(() => {
                 currentState.el.remove();
                 currentDepth--;
@@ -495,6 +548,8 @@
 
             rootState.el.style.transition = `opacity ${warpSpeed * 0.7}s ease-out ${warpSpeed * 0.3}s`;
             rootState.el.style.opacity = '1';
+
+            updateAvatarDialogue(0, "");
 
             setTimeout(() => {
                 currentState.el.remove();
