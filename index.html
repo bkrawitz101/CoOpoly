@@ -269,10 +269,14 @@
         .left-row { flex-direction: row-reverse; } .left-row .color-bar { border-left: 2px solid #111; width: 25%; height: 100%; position: absolute; left: 0; }
         .right-row { flex-direction: row; } .right-row .color-bar { border-right: 2px solid #111; width: 25%; height: 100%; position: absolute; right: 0; }
 
-        .brown { background-color: #8B4513; } .lightblue { background-color: #87CEEB; }
-        .pink { background-color: #FF1493; } .orange { background-color: #FFA500; }
-        .red { background-color: #FF0000; } .yellow { background-color: #FFD700; }
-        .green { background-color: #008000; } .darkblue { background-color: #00008B; }
+        .c-blue .color-bar { background-color: #87CEEB; }
+        .c-indigo .color-bar { background-color: #4B0082; }
+        .c-purple .color-bar { background-color: #800080; }
+        .c-magenta .color-bar { background-color: #FF00FF; }
+        .c-red .color-bar { background-color: #FF0000; }
+        .c-orange .color-bar { background-color: #FFA500; }
+        .c-yellow .color-bar { background-color: #FFD700; }
+        .c-green .color-bar { background-color: #008000; }
 
     </style>
 </head>
@@ -370,38 +374,47 @@
         function createRootBoardHTML() {
             let html = `<div class="root-board">`;
             const map = {
-                red: { c: '#FF0000', n: 'Red Prop' }, yellow: { c: '#FFD700', n: 'Yellow Prop' },
-                green: { c: '#008000', n: 'Green Prop' }, darkblue: { c: '#00008B', n: 'Dark Blue Prop' },
-                lightblue: { c: '#87CEEB', n: 'Light Blue Prop' }, brown: { c: '#8B4513', n: 'Brown Prop' },
-                orange: { c: '#FFA500', n: 'Orange Prop' }, pink: { c: '#FF1493', n: 'Pink Prop' },
-                corner: { c: '#ffffff', n: 'Corner' }, empty: { c: '#aaaaaa', n: 'Action' }
+                blue: { c: '#87CEEB', n: 'Blue Prop', cls: 'c-blue' },
+                indigo: { c: '#4B0082', n: 'Indigo Prop', cls: 'c-indigo' },
+                purple: { c: '#800080', n: 'Purple Prop', cls: 'c-purple' },
+                magenta: { c: '#FF00FF', n: 'Magenta Prop', cls: 'c-magenta' },
+                red: { c: '#FF0000', n: 'Red Prop', cls: 'c-red' },
+                orange: { c: '#FFA500', n: 'Orange Prop', cls: 'c-orange' },
+                yellow: { c: '#FFD700', n: 'Yellow Prop', cls: 'c-yellow' },
+                green: { c: '#008000', n: 'Green Prop', cls: 'c-green' },
+                corner: { c: '#ffffff', n: 'Corner', cls: '' },
+                empty: { c: '#aaaaaa', n: 'Action', cls: '' }
             };
 
             html += `<div class="corner space-node" data-name="Free Parking" data-color="${map.corner.c}" data-ang="0" style="grid-column: 1; grid-row: 1;"></div>`;
+            const topProps = [map.blue, map.empty, map.blue, map.blue, map.empty, map.indigo, map.indigo, map.empty, map.indigo];
             for(let i=2; i<=10; i++) {
-                let clr = (i===3||i===6||i===9) ? map.empty : (i<=5 ? map.red : map.yellow);
-                let bar = (i===3||i===6||i===9) ? '' : `<div class="color-bar ${i<=5 ? 'red' : 'yellow'}"></div>`;
-                html += `<div class="space top-row space-node" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="0" style="grid-column: ${i};">${bar}</div>`;
+                let clr = topProps[i-2];
+                let bar = clr === map.empty ? '' : `<div class="color-bar"></div>`;
+                html += `<div class="space top-row space-node ${clr.cls}" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="0" style="grid-column: ${i};">${bar}</div>`;
             }
             html += `<div class="corner space-node" data-name="Go To Jail" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 1;"></div>`;
 
+            const leftProps = [map.green, map.green, map.empty, map.green, map.empty, map.yellow, map.yellow, map.empty, map.yellow];
             for(let i=2; i<=10; i++) {
-                let clr = (i===4||i===6||i===9) ? map.empty : (i<=5 ? map.orange : map.pink);
-                let bar = (i===4||i===6||i===9) ? '' : `<div class="color-bar ${i<=5 ? 'orange' : 'pink'}"></div>`;
-                html += `<div class="space left-row space-node" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="90" style="grid-column: 1; grid-row: ${i};">${bar}</div>`;
+                let clr = leftProps[i-2];
+                let bar = clr === map.empty ? '' : `<div class="color-bar"></div>`;
+                html += `<div class="space left-row space-node ${clr.cls}" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="90" style="grid-column: 1; grid-row: ${i};">${bar}</div>`;
             }
 
+            const rightProps = [map.purple, map.purple, map.empty, map.purple, map.empty, map.empty, map.magenta, map.empty, map.magenta];
             for(let i=2; i<=10; i++) {
-                let clr = (i===4||i===6||i===9) ? map.empty : (i<=5 ? map.green : map.darkblue);
-                let bar = (i===4||i===6||i===9) ? '' : `<div class="color-bar ${i<=5 ? 'green' : 'darkblue'}"></div>`;
-                html += `<div class="space right-row space-node" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="-90" style="grid-column: 11; grid-row: ${i};">${bar}</div>`;
+                let clr = rightProps[i-2];
+                let bar = clr === map.empty ? '' : `<div class="color-bar"></div>`;
+                html += `<div class="space right-row space-node ${clr.cls}" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="-90" style="grid-column: 11; grid-row: ${i};">${bar}</div>`;
             }
 
             html += `<div class="corner space-node" data-name="Jail" data-color="${map.corner.c}" data-ang="0" style="grid-column: 1; grid-row: 11;"></div>`;
+            const bottomProps = [map.orange, map.orange, map.empty, map.orange, map.empty, map.empty, map.red, map.empty, map.red];
             for(let i=2; i<=10; i++) {
-                let clr = (i===4||i===6||i===7||i===9) ? map.empty : (i<=5 ? map.lightblue : map.brown);
-                let bar = (i===4||i===6||i===7||i===9) ? '' : `<div class="color-bar ${i<=5 ? 'lightblue' : 'brown'}"></div>`;
-                html += `<div class="space bottom-row space-node" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="180" style="grid-column: ${i}; grid-row: 11;">${bar}</div>`;
+                let clr = bottomProps[i-2];
+                let bar = clr === map.empty ? '' : `<div class="color-bar"></div>`;
+                html += `<div class="space bottom-row space-node ${clr.cls}" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="180" style="grid-column: ${i}; grid-row: 11;">${bar}</div>`;
             }
             html += `<div class="corner space-node" data-name="GO" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 11;"></div>`;
 
