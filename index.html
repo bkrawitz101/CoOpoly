@@ -90,7 +90,12 @@
             z-index: 5;
         }
 
-        .color-bar { pointer-events: none; z-index: 5; }
+        .color-bar { 
+            pointer-events: none; z-index: 5; 
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; text-align: center; box-sizing: border-box; padding: 1px;
+            font-size: 0.85vmin; font-weight: 800; color: #111; line-height: 1.1;
+        }
 
         .root-center {
             grid-column: 2 / 11; grid-row: 2 / 11;
@@ -229,6 +234,9 @@
         .sub-color-bar {
             height: 25%; background-color: var(--theme-color);
             border-bottom: 2px solid #111;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; text-align: center; box-sizing: border-box; padding: 1px;
+            font-size: 1.2vmin; font-weight: 800; color: #111; line-height: 1.1;
         }
 
         .sub-name {
@@ -371,6 +379,23 @@
             `;
         }
 
+        /* 
+        ================================================================================
+        BOARD SPACE COORDINATE SYSTEM:
+        - "Board Space #01" is the Top-Left Corner.
+        - Numbering increases sequentially in a CLOCKWISE direction around the board.
+        
+        Layout Map (40 Spaces Total):
+        [#01] Top-Left Corner ("Free Parking")
+        [#02 - #10] Top Row (Moving Left to Right)
+        [#11] Top-Right Corner ("Go To Jail")
+        [#12 - #20] Right Row (Moving Top to Bottom)
+        [#21] Bottom-Right Corner ("GO")
+        [#22 - #30] Bottom Row (Moving Right to Left)
+        [#31] Bottom-Left Corner ("Jail")
+        [#32 - #40] Left Row (Moving Bottom to Top)
+        ================================================================================
+        */
         function createRootBoardHTML() {
             let html = `<div class="root-board">`;
             const map = {
@@ -390,7 +415,8 @@
             const topProps = [map.blue, map.empty, map.blue, map.blue, map.empty, map.indigo, map.indigo, map.empty, map.indigo];
             for(let i=2; i<=10; i++) {
                 let clr = topProps[i-2];
-                let bar = clr === map.empty ? '' : `<div class="color-bar"></div>`;
+                let barText = (i === 2) ? 'Local<br>Business' : '';
+                let bar = clr === map.empty ? '' : `<div class="color-bar">${barText}</div>`;
                 html += `<div class="space top-row space-node ${clr.cls}" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="0" style="grid-column: ${i};">${bar}</div>`;
             }
             html += `<div class="corner space-node" data-name="Go To Jail" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 1;"></div>`;
@@ -449,7 +475,7 @@
                     </div>
 
                     <div class="card-color-bar"></div>
-                    <div class="card-title">${parentName}</div>
+                    <div class="card-title">Local Business</div>
                     <div class="card-grid">
             `;
             let sectionCount = 1;
@@ -461,7 +487,7 @@
                         const subName = `Sector ${sectionCount}`;
                         html += `
                             <div class="sub-cell space-node" data-name="${parentName} S${sectionCount}" data-color="${parentColor}" data-ang="0">
-                                <div class="sub-color-bar"></div>
+                                <div class="sub-color-bar">Local<br>Business</div>
                                 <div class="sub-name">${subName}</div>
                             </div>
                         `;
