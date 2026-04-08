@@ -94,8 +94,21 @@
             pointer-events: none; z-index: 5; 
             display: flex; justify-content: center; align-items: center;
             overflow: hidden; text-align: center; box-sizing: border-box; padding: 1px;
-            font-size: 0.85vmin; font-weight: 800; color: #111; line-height: 1.1;
+        font-size: 0.65vmin; font-weight: 800; color: #111; line-height: 1.1;
+        letter-spacing: -0.02em;
         }
+
+        .bar-text {
+            display: inline-block;
+            white-space: nowrap;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .top-row .bar-text { transform: rotate(0deg); }
+        .right-row .bar-text { transform: rotate(90deg); }
+        .bottom-row .bar-text { transform: rotate(180deg); }
+        .left-row .bar-text { transform: rotate(270deg); }
 
         .root-center {
             grid-column: 2 / 11; grid-row: 2 / 11;
@@ -411,36 +424,80 @@
                 empty: { c: '#aaaaaa', n: 'Action', cls: '' }
             };
 
+            const spaceData = {
+                2: { l1: 'Local Business', l2: 'Business' },
+                4: { l1: 'Financial &', l2: 'Institutions' },
+                5: { l1: 'Real Estate &', l2: 'Architecture' },
+                7: { l1: 'Tourism', l2: 'TTraveler Tours' },
+                8: { l1: 'Agriculture &', l2: 'Sustainability' },
+                10: { l1: '(non-profit)', l2: 'Good World Projects' },
+                12: { l1: 'Neighborhood', l2: 'Portals' },
+                13: { l1: 'Schools &', l2: 'Education' },
+                15: { l1: 'Theater &', l2: 'Performing Arts' },
+                18: { l1: '"Best of"', l2: 'Cool Hotspots' },
+                20: { l1: 'Animals & Pets', l2: 'for World Peace' },
+                22: { l1: 'IndigenousX', l2: 'First Nations' },
+                24: { l1: 'Culture', l2: 'History-HerStory' },
+                27: { l1: 'Art Galleries &', l2: 'Exhibits' },
+                29: { l1: 'Sculptures', l2: 'Public Art & Murals' },
+                30: { l1: 'People Avatars', l2: 'Family Legacy' },
+                32: { l1: 'Street', l2: 'Performance' },
+                34: { l1: 'Music', l2: 'Venues' },
+                35: { l1: 'Events &', l2: 'Celebrations' },
+                37: { l1: 'Integrative Health &', l2: 'Well Being' },
+                39: { l1: 'Sacred Spaces', l2: 'Healing Spaces' },
+                40: { l1: 'Green Buffalo', l2: '"best of reGen"' }
+            };
+
             html += `<div class="corner space-node" data-name="Free Parking" data-color="${map.corner.c}" data-ang="0" style="grid-column: 1; grid-row: 1;"></div>`;
             const topProps = [map.blue, map.empty, map.blue, map.blue, map.empty, map.indigo, map.indigo, map.empty, map.indigo];
             for(let i=2; i<=10; i++) {
                 let clr = topProps[i-2];
-                let barText = (i === 2) ? 'Local<br>Business' : '';
-                let bar = clr === map.empty ? '' : `<div class="color-bar">${barText}</div>`;
-                html += `<div class="space top-row space-node ${clr.cls}" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="0" style="grid-column: ${i};">${bar}</div>`;
+                let spaceId = i;
+                let l1 = spaceData[spaceId] ? spaceData[spaceId].l1 : clr.n;
+                let l2 = spaceData[spaceId] ? spaceData[spaceId].l2 : spaceId;
+                let barText = spaceData[spaceId] ? `${l1}<br>${l2}` : '';
+                let spaceName = spaceData[spaceId] ? `${l1} ${l2}` : `${clr.n} ${spaceId}`;
+                let bar = clr === map.empty ? '' : `<div class="color-bar"><span class="bar-text">${barText}</span></div>`;
+                html += `<div class="space top-row space-node ${clr.cls}" data-name="${spaceName}" data-color="${clr.c}" data-ang="0" data-l1="${l1}" data-l2="${l2}" style="grid-column: ${i};">${bar}</div>`;
             }
             html += `<div class="corner space-node" data-name="Go To Jail" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 1;"></div>`;
 
             const leftProps = [map.green, map.green, map.empty, map.green, map.empty, map.yellow, map.yellow, map.empty, map.yellow];
             for(let i=2; i<=10; i++) {
                 let clr = leftProps[i-2];
-                let bar = clr === map.empty ? '' : `<div class="color-bar"></div>`;
-                html += `<div class="space left-row space-node ${clr.cls}" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="90" style="grid-column: 1; grid-row: ${i};">${bar}</div>`;
+                let spaceId = 42 - i;
+                let l1 = spaceData[spaceId] ? spaceData[spaceId].l1 : clr.n;
+                let l2 = spaceData[spaceId] ? spaceData[spaceId].l2 : spaceId;
+                let barText = spaceData[spaceId] ? `${l1}<br>${l2}` : '';
+                let spaceName = spaceData[spaceId] ? `${l1} ${l2}` : `${clr.n} ${spaceId}`;
+                let bar = clr === map.empty ? '' : `<div class="color-bar"><span class="bar-text">${barText}</span></div>`;
+                html += `<div class="space left-row space-node ${clr.cls}" data-name="${spaceName}" data-color="${clr.c}" data-ang="90" data-l1="${l1}" data-l2="${l2}" style="grid-column: 1; grid-row: ${i};">${bar}</div>`;
             }
 
             const rightProps = [map.purple, map.purple, map.empty, map.purple, map.empty, map.empty, map.magenta, map.empty, map.magenta];
             for(let i=2; i<=10; i++) {
                 let clr = rightProps[i-2];
-                let bar = clr === map.empty ? '' : `<div class="color-bar"></div>`;
-                html += `<div class="space right-row space-node ${clr.cls}" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="-90" style="grid-column: 11; grid-row: ${i};">${bar}</div>`;
+                let spaceId = 10 + i;
+                let l1 = spaceData[spaceId] ? spaceData[spaceId].l1 : clr.n;
+                let l2 = spaceData[spaceId] ? spaceData[spaceId].l2 : spaceId;
+                let barText = spaceData[spaceId] ? `${l1}<br>${l2}` : '';
+                let spaceName = spaceData[spaceId] ? `${l1} ${l2}` : `${clr.n} ${spaceId}`;
+                let bar = clr === map.empty ? '' : `<div class="color-bar"><span class="bar-text">${barText}</span></div>`;
+                html += `<div class="space right-row space-node ${clr.cls}" data-name="${spaceName}" data-color="${clr.c}" data-ang="-90" data-l1="${l1}" data-l2="${l2}" style="grid-column: 11; grid-row: ${i};">${bar}</div>`;
             }
 
             html += `<div class="corner space-node" data-name="Jail" data-color="${map.corner.c}" data-ang="0" style="grid-column: 1; grid-row: 11;"></div>`;
             const bottomProps = [map.orange, map.orange, map.empty, map.orange, map.empty, map.empty, map.red, map.empty, map.red];
             for(let i=2; i<=10; i++) {
                 let clr = bottomProps[i-2];
-                let bar = clr === map.empty ? '' : `<div class="color-bar"></div>`;
-                html += `<div class="space bottom-row space-node ${clr.cls}" data-name="${clr.n} ${i}" data-color="${clr.c}" data-ang="180" style="grid-column: ${i}; grid-row: 11;">${bar}</div>`;
+                let spaceId = 32 - i;
+                let l1 = spaceData[spaceId] ? spaceData[spaceId].l1 : clr.n;
+                let l2 = spaceData[spaceId] ? spaceData[spaceId].l2 : spaceId;
+                let barText = spaceData[spaceId] ? `${l1}<br>${l2}` : '';
+                let spaceName = spaceData[spaceId] ? `${l1} ${l2}` : `${clr.n} ${spaceId}`;
+                let bar = clr === map.empty ? '' : `<div class="color-bar"><span class="bar-text">${barText}</span></div>`;
+                html += `<div class="space bottom-row space-node ${clr.cls}" data-name="${spaceName}" data-color="${clr.c}" data-ang="180" data-l1="${l1}" data-l2="${l2}" style="grid-column: ${i}; grid-row: 11;">${bar}</div>`;
             }
             html += `<div class="corner space-node" data-name="GO" data-color="${map.corner.c}" data-ang="0" style="grid-column: 11; grid-row: 11;"></div>`;
 
@@ -462,7 +519,7 @@
             return html;
         }
 
-        function getCardContentHTML(parentName, parentColor, depth) {
+        function getCardContentHTML(parentName, parentColor, depth, l1 = "", l2 = "") {
             let html = `
                 <div class="monopoly-card" style="--theme-color: ${parentColor};">
 
@@ -475,10 +532,11 @@
                     </div>
 
                     <div class="card-color-bar"></div>
-                    <div class="card-title">Local Business</div>
+                    <div class="card-title">${parentName}</div>
                     <div class="card-grid">
             `;
             let sectionCount = 1;
+            let barText = l1 && l2 ? `${l1}<br>${l2}` : (l1 || parentName);
             for(let row = 1; row <= 3; row++) {
                 for(let col = 1; col <= 3; col++) {
                     if (row === 2 && col === 2) {
@@ -486,8 +544,8 @@
                     } else {
                         const subName = `Sector ${sectionCount}`;
                         html += `
-                            <div class="sub-cell space-node" data-name="${parentName} S${sectionCount}" data-color="${parentColor}" data-ang="0">
-                                <div class="sub-color-bar">Local<br>Business</div>
+                            <div class="sub-cell space-node" data-name="${parentName} S${sectionCount}" data-color="${parentColor}" data-ang="0" data-l1="${l1}" data-l2="${l2}">
+                                <div class="sub-color-bar">${barText}</div>
                                 <div class="sub-name">${subName}</div>
                             </div>
                         `;
@@ -540,12 +598,14 @@
 
                     const cellName = this.getAttribute('data-name') || "Node";
                     const cellColor = this.getAttribute('data-color') || "#ccc";
+                    const cellL1 = this.getAttribute('data-l1') || cellName;
+                    const cellL2 = this.getAttribute('data-l2') || "";
                     const newDepth = depth + 1;
 
                     const newLayer = document.createElement('div');
                     newLayer.className = 'layer';
                     newLayer.id = `layer-${newDepth}`;
-                    newLayer.innerHTML = getCardContentHTML(cellName, cellColor, newDepth);
+                    newLayer.innerHTML = getCardContentHTML(cellName, cellColor, newDepth, cellL1, cellL2);
 
                     newLayer.style.transform = `translate(${localX}px, ${localY}px) rotateZ(${-diff}deg) scale(${1/dynamicS})`;
                     layersContainer.appendChild(newLayer);
