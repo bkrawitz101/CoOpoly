@@ -105,9 +105,9 @@
             flex-shrink: 0;
         }
 
-        .top-row .bar-text { transform: rotate(0deg); }
+        .top-row .bar-text { transform: rotate(180deg); }
         .right-row .bar-text { transform: rotate(90deg); }
-        .bottom-row .bar-text { transform: rotate(180deg); }
+        .bottom-row .bar-text { transform: rotate(0deg); }
         .left-row .bar-text { transform: rotate(270deg); }
 
         .root-center {
@@ -119,6 +119,22 @@
             position: relative;
             transform-style: preserve-3d;
         }
+
+        .rotate-center-img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16.25%;
+            max-width: 10vmin;
+            height: auto;
+            cursor: pointer;
+            z-index: 20;
+            transition: transform 0.2s, filter 0.2s;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+        }
+        .rotate-center-img:hover { transform: translate(-50%, -50%) scale(1.05); filter: drop-shadow(0 15px 30px rgba(0,210,255,0.6)); }
+        .rotate-center-img:active { transform: translate(-50%, -50%) scale(0.95); }
 
         /* ----- REAL-TIME CANVAS WRAPPERS ----- */
         .root-avatar-wrapper {
@@ -261,6 +277,7 @@
             grid-column: 2; grid-row: 2;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             background: rgba(255,255,255,0.9); border-radius: 4px; border: 2px dashed #aaa;
+            position: relative;
         }
 
         /* ----- SHARED CONTROLS ----- */
@@ -332,6 +349,7 @@
         let layerStack = []; 
         let currentDepth = 0;
         let isAnimating = false;
+        let currentBoardRotation = 0;
 
         const animDuration = 1.8; 
         const TILT_ANGLE = 15; 
@@ -504,6 +522,8 @@
             html += `
                 <div class="root-center">
 
+                    <img src="Images/rotate.png" class="rotate-center-img" onclick="rotateBoard(event)" alt="Rotate Board">
+
                     <div class="root-avatar-wrapper">
                         <canvas class="hologram-canvas"></canvas>
                         <video class="hologram-video" loop playsinline muted>
@@ -540,7 +560,12 @@
             for(let row = 1; row <= 3; row++) {
                 for(let col = 1; col <= 3; col++) {
                     if (row === 2 && col === 2) {
-                        html += `<div class="card-center-ui">${getControlsHTML(depth)}</div>`;
+                        html += `
+                            <div class="card-center-ui">
+                                <img src="Images/rotate.png" class="rotate-center-img" onclick="rotateBoard(event)" alt="Rotate Board">
+                                ${getControlsHTML(depth)}
+                            </div>
+                        `;
                     } else {
                         const subName = `Sector ${sectionCount}`;
                         html += `
@@ -623,12 +648,13 @@
                     void layersContainer.offsetWidth; 
 
                     vignette.style.opacity = '1';
+                    currentBoardRotation = 0;
 
                     boardMover.style.transition = `transform ${animDuration}s cubic-bezier(0.65, 0, 0.35, 1)`;
                     boardMover.style.transform = `rotateZ(${diff}deg) translate(${-localX}px, ${-localY}px)`;
 
                     cameraRig.style.transition = `transform ${animDuration}s cubic-bezier(0.65, 0, 0.35, 1)`;
-                    cameraRig.style.transform = `scale(${dynamicS}) rotateX(${TILT_ANGLE}deg)`;
+                    cameraRig.style.transform = `scale(${dynamicS}) rotateX(${TILT_ANGLE}deg) rotateZ(0deg)`;
 
                     currentLayerObj.el.style.transition = `opacity ${animDuration * 0.8}s ease-in`;
                     currentLayerObj.el.style.opacity = '0';
@@ -640,7 +666,7 @@
                         boardMover.style.transform = `translate(0px, 0px) rotateZ(0deg)`;
 
                         cameraRig.style.transition = 'none';
-                        cameraRig.style.transform = `scale(1) rotateX(${TILT_ANGLE}deg)`;
+                        cameraRig.style.transform = `scale(1) rotateX(${TILT_ANGLE}deg) rotateZ(0deg)`;
 
                         newLayer.style.transition = 'none';
                         newLayer.style.transform = `translate(0px, 0px) rotateZ(0deg) scale(1)`;
@@ -673,8 +699,10 @@
             boardMover.style.transition = 'none';
             boardMover.style.transform = `rotateZ(${currentState.diff}deg) translate(${-currentState.cx}px, ${-currentState.cy}px)`;
 
+            currentBoardRotation = 0;
+
             cameraRig.style.transition = 'none';
-            cameraRig.style.transform = `scale(${currentState.scale}) rotateX(${TILT_ANGLE}deg)`;
+            cameraRig.style.transform = `scale(${currentState.scale}) rotateX(${TILT_ANGLE}deg) rotateZ(0deg)`;
 
             currentState.el.style.transition = 'none';
             currentState.el.style.transform = `translate(${currentState.cx}px, ${currentState.cy}px) rotateZ(${-currentState.diff}deg) scale(${1/currentState.scale})`;
@@ -688,7 +716,7 @@
 
             const isRoot = currentDepth - 1 === 0;
             cameraRig.style.transition = `transform ${animDuration}s cubic-bezier(0.65, 0, 0.35, 1)`;
-            cameraRig.style.transform = `scale(1) rotateX(${isRoot ? 0 : TILT_ANGLE}deg)`;
+            cameraRig.style.transform = `scale(1) rotateX(${isRoot ? 0 : TILT_ANGLE}deg) rotateZ(0deg)`;
 
             currentState.el.style.transition = `opacity ${animDuration * 0.8}s ease-in`;
             currentState.el.style.opacity = '0';
@@ -731,8 +759,10 @@
             boardMover.style.transition = 'none';
             boardMover.style.transform = `translate(0px, 0px) rotateZ(0deg)`;
 
+            currentBoardRotation = 0;
+
             cameraRig.style.transition = 'none';
-            cameraRig.style.transform = `scale(0.1) rotateX(0deg)`;
+            cameraRig.style.transform = `scale(0.1) rotateX(0deg) rotateZ(0deg)`;
 
             currentState.el.style.transition = 'none';
             currentState.el.style.transform = `translate(0px, 0px) rotateZ(0deg) scale(1)`;
@@ -742,7 +772,7 @@
             vignette.style.opacity = '1';
 
             cameraRig.style.transition = `transform ${warpSpeed}s cubic-bezier(0.5, 0, 0.5, 1)`;
-            cameraRig.style.transform = `scale(1) rotateX(0deg)`;
+            cameraRig.style.transform = `scale(1) rotateX(0deg) rotateZ(0deg)`;
 
             currentState.el.style.transition = `opacity ${warpSpeed * 0.8}s ease-in`;
             currentState.el.style.opacity = '0';
@@ -760,6 +790,15 @@
                 isAnimating = false;
             }, warpSpeed * 1000);
         }
+
+        window.rotateBoard = function(e) {
+            if (e) e.stopPropagation();
+            if (isAnimating) return;
+            currentBoardRotation += 90;
+            const isRoot = currentDepth === 0;
+            cameraRig.style.transition = `transform 0.8s cubic-bezier(0.65, 0, 0.35, 1)`;
+            cameraRig.style.transform = `scale(1) rotateX(${isRoot ? 0 : TILT_ANGLE}deg) rotateZ(${currentBoardRotation}deg)`;
+        };
 
         const initRootLayer = document.getElementById('layer-0');
         initRootLayer.innerHTML = createRootBoardHTML();
