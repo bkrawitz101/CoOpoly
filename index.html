@@ -70,8 +70,9 @@
             display: grid;
             grid-template-columns: 1.5fr repeat(9, 1fr) 1.5fr;
             grid-template-rows: 1.5fr repeat(9, 1fr) 1.5fr;
-            background-color: #fafaf0;
-            border: 2px solid #111;
+            background-color: #111;
+            gap: 1px;
+            border: 1px solid #111;
             box-shadow: 0 20px 80px rgba(0,0,0,0.8);
             box-sizing: border-box;
             transform-style: preserve-3d;
@@ -79,7 +80,7 @@
         }
 
         .space, .corner {
-            outline: 1px solid #111; box-sizing: border-box;
+            background-color: #fafaf0; box-sizing: border-box;
             display: flex; position: relative; justify-content: center; align-items: center;
             cursor: pointer; transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
             transform-style: preserve-3d;
@@ -132,7 +133,7 @@
 
         .root-center {
             grid-column: 2 / 11; grid-row: 2 / 11;
-            background-color: #cde6d0; outline: 1px solid #111;
+            background-color: #cde6d0;
             display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
             padding-bottom: 5vmin; 
             box-shadow: inset 0 0 50px rgba(0,0,0,0.1);
@@ -251,7 +252,7 @@
         /* ----- FRACTAL MONOPOLY CARD ----- */
         .monopoly-card {
             position: absolute; width: 100%; height: 100%; left: 0; top: 0;
-            background: #fafaf0; border: 4px solid #111; border-radius: 8px;
+            background: #fafaf0; border: 1px solid #111; border-radius: 8px;
             display: flex; flex-direction: column;
             box-shadow: 0 30px 80px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,0,0,0.05);
             box-sizing: border-box;
@@ -262,7 +263,7 @@
 
         .card-color-bar {
             height: 16%; background-color: var(--theme-color);
-            border-bottom: 4px solid #111;
+            border-bottom: 1px solid #111;
             box-shadow: inset 0 -5px 10px rgba(0,0,0,0.2);
             border-radius: 4px 4px 0 0;
         }
@@ -270,7 +271,7 @@
         .card-title {
             height: 14%; display: flex; justify-content: center; align-items: center;
             color: #111; font-size: 2.2rem; text-transform: uppercase; font-weight: 900;
-            letter-spacing: 2px; border-bottom: 2px solid #ccc; text-align: center;
+            letter-spacing: 2px; border-bottom: 1px solid #ccc; text-align: center;
         }
 
         .card-grid {
@@ -281,7 +282,7 @@
         }
 
         .sub-cell {
-            background: #fff; border: 2px solid #111; border-radius: 4px;
+            background: #fff; border: 1px solid #111; border-radius: 4px;
             display: flex; flex-direction: column; cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -301,7 +302,7 @@
 
         .sub-color-bar {
             height: 25%; background-color: var(--theme-color);
-            border-bottom: 2px solid #111;
+            border-bottom: 1px solid #111;
             display: flex; justify-content: center; align-items: center;
             overflow: hidden; text-align: center; box-sizing: border-box; padding: 1px;
             font-size: 1.2vmin; font-weight: 800; color: #111; line-height: 1.1;
@@ -317,7 +318,7 @@
             grid-column: 2; grid-row: 2;
             display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
             padding-bottom: 2vmin;
-            background: rgba(255,255,255,0.9); border-radius: 4px; border: 2px dashed #aaa;
+            background: rgba(255,255,255,0.9); border-radius: 4px; border: 1px dashed #aaa;
             position: relative;
             transform-style: preserve-3d;
             -webkit-transform-style: preserve-3d;
@@ -334,7 +335,7 @@
 
         button {
             background-color: #111; color: #fff;
-            border: 2px solid #444; padding: 10px 20px;
+            border: 1px solid #444; padding: 10px 20px;
             font-size: 1.1rem; font-weight: bold; border-radius: 4px;
             cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
             transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
@@ -345,15 +346,15 @@
 
         .depth-display {
             font-family: monospace; font-size: 1.5rem; font-weight: bold; color: #111;
-            background: rgba(255,255,255,0.8); padding: 6px 16px; border-radius: 4px; border: 2px solid #888;
+            background: rgba(255,255,255,0.8); padding: 6px 16px; border-radius: 4px; border: 1px solid #888;
         }
 
         .root-center h2 { margin: 0 0 5px 0; font-size: 3.5rem; color: #111; text-transform: uppercase; letter-spacing: 2px;}
 
-        .top-row { flex-direction: column; } .top-row .color-bar { border-top: 2px solid #111; height: 25%; width: 100%; position: absolute; bottom: 0; }
-        .bottom-row { flex-direction: column-reverse; } .bottom-row .color-bar { border-bottom: 2px solid #111; height: 25%; width: 100%; position: absolute; top: 0; }
-        .left-row { flex-direction: row; } .left-row .color-bar { border-left: 2px solid #111; width: 25%; height: 100%; position: absolute; right: 0; }
-        .right-row { flex-direction: row-reverse; } .right-row .color-bar { border-right: 2px solid #111; width: 25%; height: 100%; position: absolute; left: 0; }
+        .top-row { flex-direction: column; } .top-row .color-bar { border-top: 1px solid #111; height: 25%; width: 100%; position: absolute; bottom: 0; }
+        .bottom-row { flex-direction: column-reverse; } .bottom-row .color-bar { border-bottom: 1px solid #111; height: 25%; width: 100%; position: absolute; top: 0; }
+        .left-row { flex-direction: row; } .left-row .color-bar { border-left: 1px solid #111; width: 25%; height: 100%; position: absolute; right: 0; }
+        .right-row { flex-direction: row-reverse; } .right-row .color-bar { border-right: 1px solid #111; width: 25%; height: 100%; position: absolute; left: 0; }
 
         .c-blue .color-bar { background-color: #87CEEB; }
         .c-indigo .color-bar { background-color: #4B0082; }
@@ -447,13 +448,13 @@
         });
 
         function getControlsHTML(depth) {
-            const isDisabled = depth === 0 ? "disabled" : "";
+            if (depth === 0) return '';
             return `
                 <div class="controls">
                     <div class="depth-display">Depth: ${depth}</div>
                     <div class="button-row">
-                        <button onclick="ascend(event)" ${isDisabled}>Ascend</button>
-                        <button onclick="returnHome(event)" ${isDisabled}>Root</button>
+                        <button onclick="ascend(event)">Ascend</button>
+                        <button onclick="returnHome(event)">Root</button>
                     </div>
                 </div>
             `;
